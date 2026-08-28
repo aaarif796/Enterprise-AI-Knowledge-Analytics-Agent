@@ -68,3 +68,39 @@ def test_sql_clean():
 
     assert SQLEngine._clean_sql("SELECT 1;") == "SELECT 1"
     assert SQLEngine._clean_sql("```sql\nSELECT 1```") == "SELECT 1"
+
+
+def test_orchestrator_keyword_routing():
+    """Keyword pre-classification short-circuits before any LLM/DB call."""
+    import asyncio
+
+    from app.agents.orchestrator import Orchestrator
+
+    orch = Orchestrator()
+
+    async def run():
+        assert await orch.classify("What are total sales by customer?") == "sql"
+        assert await orch.classify("Show me product stock counts") == "sql"
+        assert await orch.classify("What is the latest news today?") == "web"
+        assert await orch.classify("What's the weather right now?") == "web"
+
+    asyncio.run(run())
+
+
+def test_response_agent_format_context():
+    from app.core.schemas import Citation, SourceType
+    from app.services.response_agent import ResponseAgent
+
+    agent = ResponseAgent()
+    citations = [Citation(type=SourceType.WEB, title="Example", snippet="some text")]
+    out = agent._format_context(citations)
+    assert "[1]" in out and "Example" in out
+
+
+def test_evaluation_confidence():
+    from app.core.schemas import EvaluationResult
+
+    er = EvaluationResult(faithfulness=0.8, relevance=0.9, correctness=0.7)
+    assert er.confidence == round((0.8 + 0.9 + 0.7) / 3.0, 3)
+    assert er.details["confidence"] == er.confidence
+

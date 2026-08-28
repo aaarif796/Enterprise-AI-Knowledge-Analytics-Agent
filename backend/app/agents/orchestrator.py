@@ -10,20 +10,13 @@ is reliable in production and cheap (small routing model).
 """
 from __future__ import annotations
 
-import json
 from typing import Optional
 
 from ..core.cache import get_cache
 from ..core.logging import get_logger
 from ..core.model_gateway import get_gateway
 from ..core.model_router import ModelRouter
-from ..core.schemas import (
-    AgentContext,
-    Citation,
-    EvaluationResult,
-    SourceType,
-    TaskType,
-)
+from ..core.schemas import AgentContext, Citation, TaskType
 from ..evaluation.evaluator import Evaluator
 from ..services.response_agent import ResponseAgent
 from .rag_agent import RAGAgent
