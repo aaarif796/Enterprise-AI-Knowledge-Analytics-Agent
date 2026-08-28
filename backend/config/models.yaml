@@ -1,0 +1,109 @@
+# ============================================================
+#  MODEL CONFIG - The single place to configure all providers.
+#  Simply write the model name + provider preset; the gateway
+#  resolves and fails over automatically. Free/local by default.
+#
+#  Supported providers (via LiteLLM + custom OpenAI-compatible):
+#    ollama | groq | openrouter | openai | anthropic | gemini |
+#    deepseek | mistral | together | custom (any OpenAI-compatible)
+#
+#  NOTE: Keys come from the environment (.env), not this file.
+# ============================================================
+
+# Default model for generation when no task route matches
+default_model: ollama/llama3.1
+
+# ------------------------------------------------------------
+# PROVIDER PRESETS - base URLs / compat so the router knows how
+# to reach each vendor. Keys are read from env at startup.
+# ------------------------------------------------------------
+providers:
+  ollama:
+    llm_prefix: ollama
+    base_url_env: OLLAMA_BASE_URL
+    default_base_url: http://localhost:11434
+    key_env: null            # local = no key needed
+  groq:
+    llm_prefix: groq
+    key_env: GROQ_API_KEY
+  openrouter:
+    llm_prefix: openrouter
+    key_env: OPENROUTER_API_KEY
+  openai:
+    llm_prefix: openai
+    key_env: OPENAI_API_KEY
+    base_url_env: OPENAI_API_BASE
+  anthropic:
+    llm_prefix: anthropic
+    key_env: ANTHROPIC_API_KEY
+  gemini:
+    llm_prefix: gemini
+    key_env: GEMINI_API_KEY
+  deepseek:
+    llm_prefix: deepseek
+    key_env: DEEPSEEK_API_KEY
+  custom:
+    llm_prefix: ""            # raw OpenAI-compatible endpoint
+    key_env: CUSTOM_LLM_API_KEY
+    base_url_env: CUSTOM_LLM_BASE_URL
+
+# ------------------------------------------------------------
+# TASK ROUTE TABLE - pick the best (cheapest) free model per use.
+# `primary` is tried first; `fallback` is the failover chain.
+# ------------------------------------------------------------
+model_routes:
+  # Cheap + fast small model for intent detection / routing
+  routing:
+    primary: groq/llama-3.1-8b-instant
+    fallback:
+      - ollama/qwen2.5:7b
+      - openrouter/meta-llama/llama-3.1-8b-instruct:free
+
+  # Local embeddings - zero API cost
+  embedding:
+    primary: ollama/nomic-embed-text
+    fallback:
+      - openrouter/openai/text-embedding-3-small
+
+  # Code-tuned model for SQL generation
+  sql_generation:
+    primary: openrouter/deepseek/deepseek-chat-v3-0324:free
+    fallback:
+      - groq/llama-3.3-70b-versatile
+      - ollama/qwen2.5:7b
+
+  # Strong free model for synthesizing retrieved context (RAG)
+  rag_context:
+    primary: ollama/qwen2.5:7b
+    fallback:
+      - groq/llama-3.3-70b-versatile
+
+  # Web search result summarization
+  web_summary:
+    primary: groq/llama-3.3-70b-versatile
+    fallback:
+      - openrouter/meta-llama/llama-3.3-70b-instruct:free
+      - ollama/llama3.1
+
+  # Final answer synthesis (best free option)
+  final_synth:
+    primary: openrouter/meta-llama/llama-3.3-70b-instruct:free
+    fallback:
+      - groq/llama-3.3-70b-versatile
+      - ollama/llama3.1
+
+  # LLM-as-judge for evaluation - cheap + fast
+  evaluator:
+    primary: groq/llama-3.1-8b-instant
+    fallback:
+      - openrouter/meta-llama/llama-3.1-8b-instruct:free
+      - ollama/qwen2.5:7b
+
+# ------------------------------------------------------------
+# Generation parameters applied to all routed models
+# ------------------------------------------------------------
+generation:
+  temperature: 0.2
+  max_tokens: 2048
+  top_p: 0.9
+  timeout: 120

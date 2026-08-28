@@ -1,0 +1,47 @@
+# ============================================================
+# Backend dependencies
+# Minimum versions; pip resolves the newest compatible build
+# (works on Python 3.12+ and 3.14). For a pinned, reproducible
+# production deploy use the Docker image with Python 3.12.
+# ============================================================
+
+# --- Web framework ---
+fastapi>=0.115
+uvicorn[standard]>=0.34
+pydantic>=2.10
+pydantic-settings>=2.7
+python-multipart>=0.0.20
+httpx>=0.28
+
+# --- Unified model gateway (all providers, free/local defaults) ---
+litellm>=1.58
+
+# --- Agent orchestration ---
+langgraph>=0.2.60
+langchain-core>=0.3.29
+langchain-openai>=0.2.14
+langchain-community>=0.3.14
+
+# --- Vectors: PostgreSQL + pgvector ---
+psycopg[binary]>=3.2
+pgvector>=0.3.6
+SQLAlchemy>=2.0.36
+alembic>=1.14
+
+# --- Redis cache / sessions / rate-limit ---
+redis>=5.2
+
+# --- Web search (free DuckDuckGo) ---
+duckduckgo-search>=7.0.4
+beautifulsoup4>=4.12.3
+
+# --- Config / env ---
+PyYAML>=6.0.2
+python-dotenv>=1.0.1
+
+# --- Testing ---
+pytest>=8.3.4
+pytest-asyncio>=0.25
+
+# --- Observability ---
+structlog>=24.4
